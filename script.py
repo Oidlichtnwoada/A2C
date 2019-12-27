@@ -2,7 +2,7 @@ import gym
 import matplotlib.pyplot as plt
 import numpy as np
 
-from A2C import A2CAgent
+from AdvantageActorCritic import A2CAgent
 
 a2c_agent = A2CAgent(gym.make('CartPole-v0'))
 print(f'episodic reward before training: {np.sum(a2c_agent.test(True)[3])}')
