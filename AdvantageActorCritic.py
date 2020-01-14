@@ -19,7 +19,7 @@ class ActionValueModel(tf.keras.Model):
         return output_layer_action_output, output_layer_value_output
 
     def get_action_and_value(self, observation):
-        output_layer_action_output, output_layer_value_output = self.predict(np.expand_dims(observation, 0))
+        output_layer_action_output, output_layer_value_output = self.predict_on_batch(np.expand_dims(observation, 0))
         action = np.squeeze(tf.squeeze(tf.random.categorical(output_layer_action_output, 1), axis=-1), axis=-1)
         value = np.squeeze(tf.squeeze(output_layer_value_output, axis=-1), axis=-1)
         return action, value
@@ -63,11 +63,13 @@ class A2CAgent:
         advantages = returns - values
         return returns, advantages
 
-    def train(self, history_length=10):
+    def train(self, history_length=10, log=True):
         episodic_rewards = [0]
         while np.min(episodic_rewards[-history_length:]) < self.environment.spec.max_episode_steps:
             actions, values, observations, rewards = self.test()
             episodic_rewards.append(np.sum(rewards))
             returns, advantages = self.get_returns_and_advantages(rewards, values)
             self.model.train_on_batch(observations, [np.array(list(zip(actions, advantages))), returns])
+            if log:
+                print(f'episodic reward while training: {episodic_rewards[-1]}')
         return np.array(episodic_rewards)
